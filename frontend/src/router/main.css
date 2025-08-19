@@ -1,0 +1,17 @@
+/* frontend/src/router/main.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos adicionales que hagan el look & feel como tu imagen */
+body {
+  font-family: 'Arial', sans-serif; /* O una fuente más moderna si prefieres */
+  background-color: #f4f7f6;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Puedes añadir más estilos base aquí si no los cubre Tailwind directamente */
+h1, h2 {
+  font-weight: bold;
+}

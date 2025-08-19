@@ -1,0 +1,25 @@
+# Go binaries and packages
+/backend/main
+/backend/*.test
+/backend/tmp/
+/backend/vendor/
+/backend/pkg/
+/backend/.idea/
+
+# Database data
+cockroach_data/ # Volume para CockroachDB de Docker Compose
+
+# Environment variables
+.env
+*.env
+secrets/
+
+# Node modules (for frontend, which we'll add later)
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vscode/
+
+# OS generated files
+.DS_Store
+.vscode/
+Thumbs.db

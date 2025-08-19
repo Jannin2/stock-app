@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:latest
+    command: start-single-node --insecure --host 0.0.0.0
+    ports:
+      - "26257:26257" # SQL Port
+      - "8080:8080"   # Admin UI Port
+    volumes:
+      - cockroach_data:/cockroach/cockroach-data
+
+  backend: # Your Go backend service
+    build:
+      context: ./backend # Path to your backend directory
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081" # Map host port 8081 to container port 8081
+    environment:
+      # Use the Docker service name for CockroachDB
+      DATABASE_URL: "postgres://root@cockroachdb:26257/defaultdb?sslmode=disable"
+      PORT: "8081" # Or whatever port your Go app listens on
+    depends_on:
+      - cockroachdb # Ensure CockroachDB starts before the backend
+
+volumes:
+  cockroach_data:

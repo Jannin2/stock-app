@@ -1,0 +1,16 @@
+// tsconfig.node.json
+{
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tsbuildinfo",
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noEmit": true,
+    "lib": ["esnext", "dom", "dom.iterable"], // <--- Asegúrate de que estos valores sean correctos
+    "types": ["node"] // Asegúrate de que si usas cosas de Node, esté aquí
+  },
+  "include": ["vite.config.ts", "postcss.config.cjs"] // Ajusta esto según tus archivos de configuración
+}

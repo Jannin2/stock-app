@@ -1,39 +1,56 @@
 package api
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"os"
-	"time"
+    "database/sql"
+    "encoding/json"
+    "fmt"
+    "io"
+    "log"
+    "net/http"
+    "os"
+    "strconv"
+    "strings"
+    "time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/jannin2/stock-app/backend/handlers"
-	"github.com/jannin2/stock-app/backend/models"
+    "github.com/go-chi/chi/v5"
+    "github.com/jannin2/stock-app/backend/handlers"
+    "github.com/jannin2/stock-app/backend/models"
 )
 
+// Las constantes definen las URLs base para las APIs externas utilizadas en la aplicación.
 const (
-	KARENAI_API_URL        = "https://api.karenai.click/swechallenge/list"
-	FINNHUB_BASE_URL       = "https://finnhub.io/api/v1"
-	ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
+    KARENAI_API_URL        = "https://api.karenai.click/swechallenge/list"
+    FINNHUB_BASE_URL       = "https://finnhub.io/api/v1"
+    ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
 )
 
+// SetupRouter configura las rutas de la API.
 func SetupRouter(r *chi.Mux, stockHandlers *handlers.StockHandlers) {
-	r.Route("/api/v1", func(r chi.Router) {
-		r.Route("/stocks", func(r chi.Router) {
-			r.Get("/", stockHandlers.GetStocks)
-			r.Get("/{id}", stockHandlers.GetStockByID)
-			r.Get("/recommended", stockHandlers.GetRecommendedStocks)
-
-		})
-	})
+    r.Route("/api/v1", func(r chi.Router) {
+        r.Route("/stocks", func(r chi.Router) {
+            r.Get("/", stockHandlers.GetStocks)
+            r.Get("/{id}", stockHandlers.GetStockByID)
+            r.Get("/recommended", stockHandlers.GetRecommendedStocks)
+        })
+    })
 }
 
+// karenaiAPIResponse es una estructura que coincide con los datos crudos del JSON de la API.
+type karenaiAPIResponse struct {
+    Ticker     string `json:"ticker"`
+    Company    string `json:"company"`
+    Brokerage  string `json:"brokerage"`
+    Action     string `json:"action"`
+    RatingFrom string `json:"rating_from"`
+    RatingTo   string `json:"rating_to"`
+    TargetFrom string `json:"target_from"`
+    TargetTo   string `json:"target_to"`
+}
+
+// karenaiResponse es la estructura que envuelve la respuesta completa de la API.
 type karenaiResponse struct {
-	Items    []models.Stock `json:"items"`
-	NextPage string         `json:"next_page"`
+    Items    []karenaiAPIResponse `json:"items"`
+    NextPage string               `json:"next_page"`
 }
 
 // Structs for Finnhub responses
@@ -69,6 +86,8 @@ type AlphaVantageData struct {
 	Error            error
 }
 
+
+// GetRecommendationsFromKarenai obtiene recomendaciones de stocks de la API.
 func GetRecommendationsFromKarenai() ([]models.Stock, error) {
 	karenaiAPIKey := os.Getenv("KARENAI_API_KEY")
 	if karenaiAPIKey == "" {
@@ -113,8 +132,39 @@ func GetRecommendationsFromKarenai() ([]models.Stock, error) {
 		return nil, fmt.Errorf("error al decodificar la respuesta JSON de Karenai.click: %w", err)
 	}
 
-	log.Printf("DEBUG: Karenai.click API - %d stocks decodificados correctamente.", len(karenaiResp.Items))
-	return karenaiResp.Items, nil
+	var stocks []models.Stock
+    for _, item := range karenaiResp.Items {
+        // Limpia el símbolo de dólar de las cadenas de precio.
+        targetFromCleaned := strings.Replace(item.TargetFrom, "$", "", 1)
+        targetToCleaned := strings.Replace(item.TargetTo, "$", "", 1)
+
+        // Convierte las cadenas limpias a float64.
+        targetFrom, err := strconv.ParseFloat(targetFromCleaned, 64)
+        if err != nil {
+            targetFrom = 0.0
+        }
+
+        targetTo, err := strconv.ParseFloat(targetToCleaned, 64)
+        if err != nil {
+            targetTo = 0.0
+        }
+
+        // Crea el objeto models.Stock con los datos procesados.
+        stock := models.Stock{
+            Ticker:     item.Ticker,
+            Company:    item.Company,
+            Brokerage:  item.Brokerage,
+            Action:     item.Action,
+            RatingFrom: item.RatingFrom,
+            RatingTo:   item.RatingTo,
+            TargetFrom: models.NullFloat64{sql.NullFloat64{Float64: targetFrom, Valid: true}}, // Ahora es seguro convertir a NullFloat64
+            TargetTo:   models.NullFloat64{sql.NullFloat64{Float64: targetTo, Valid: true}},
+        }
+        stocks = append(stocks, stock)
+    }
+
+	log.Printf("DEBUG: Karenai.click API - %d stocks decodificados y procesados.", len(stocks))
+	return stocks, nil
 }
 
 func GetFinnhubMetricsAndQuote(ticker string) (FinnhubData, error) {

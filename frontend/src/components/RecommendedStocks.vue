@@ -1,25 +1,35 @@
 <script setup lang="ts">
+// Importa la función 'onMounted' de Vue. Este es un 'hook' del ciclo de vida que se ejecuta cuando el componente se ha añadido al DOM.
 import { onMounted } from 'vue';
+// Importa 'useStockStore', una función que te permite acceder a un 'store' (almacén de estado) global.
 import { useStockStore } from '../stores/stocks';
 
+// Inicializa el 'store' para poder acceder a sus datos y métodos.
 const stockStore = useStockStore();
 
+// Llama a la función 'onMounted'. El código dentro de esta función se ejecutará automáticamente después de que el componente sea montado.
 onMounted(() => {
+    // Llama a la acción 'fetchRecommendedStocks' del 'store' para obtener los datos de las acciones desde la API.
     stockStore.fetchRecommendedStocks();
 });
 
+// Define una función para determinar qué clase de estilo CSS aplicar a una tarjeta de acción.
 const getCardClass = (action: string) => {
+    // Utiliza una declaración 'switch' para decidir la clase según el valor de 'action'.
     switch (action.toLowerCase()) {
+        // Para las acciones de compra, devuelve la clase 'card-buy'.
         case 'buy':
         case 'strong buy':
             return 'card-buy';
+        // Para las acciones de venta, devuelve la clase 'card-sell'.
         case 'sell':
         case 'strong sell':
             return 'card-sell';
+        // Para las acciones de 'mantener', devuelve la clase 'card-hold'.
         case 'hold':
             return 'card-hold';
         default:
-            // This case handles 'target lowered by', 'reiterated by', 'target raised by', etc.
+            // Para cualquier otra acción no especificada, devuelve una clase de estilo neutral.
             return 'card-neutral';
     }
 };
@@ -73,7 +83,7 @@ const getCardClass = (action: string) => {
 </template>
 
 <style scoped>
-/* Tu estilo existente */
+/* Contenedor principal de la sección. */
 .recommended-stocks-container {
     padding: 20px;
     background-color: #f9f9f9;
@@ -82,18 +92,21 @@ const getCardClass = (action: string) => {
     margin-top: 20px;
 }
 
+/* Estilo para el título de la sección. */
 h2 {
     color: #333;
     margin-bottom: 20px;
     text-align: center;
 }
 
+/* Contenedor que utiliza un 'grid' para mostrar las tarjetas. */
 .recommended-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
+/* Estilo para cada tarjeta individual. */
 .stock-card {
     background-color: white;
     border-radius: 8px;
@@ -105,6 +118,7 @@ h2 {
     justify-content: space-between;
 }
 
+/* Estilo para el título de la tarjeta. */
 .stock-card h3 {
     margin-top: 0;
     color: #007bff;
@@ -112,16 +126,19 @@ h2 {
     margin-bottom: 10px;
 }
 
+/* Estilo para los párrafos de la tarjeta. */
 .stock-card p {
     margin: 5px 0;
     color: #555;
     font-size: 0.95em;
 }
 
+/* Estilo para el texto de la acción. */
 .action-text {
     font-weight: bold;
 }
 
+/* Clases dinámicas que cambian el color del borde izquierdo según la recomendación. */
 .card-buy {
     border-left-color: #28a745;
 }
@@ -138,6 +155,7 @@ h2 {
     border-left-color: #6c757d;
 }
 
+/* Estilos para los mensajes de estado. */
 .loading-message, .error-message, .no-data-message {
     text-align: center;
     padding: 20px;
@@ -145,6 +163,7 @@ h2 {
     color: #555;
 }
 
+/* Estilo específico para el mensaje de error. */
 .error-message {
     color: #d9534f;
     font-weight: bold;

@@ -306,16 +306,16 @@ func (c *cockroachDB) GetRecommendedStocks(limit int) ([]models.Stock, error) {
 // UpsertStocks inserts new stocks or updates existing ones based on their ticker.
 func (c *cockroachDB) UpsertStocks(stocks []models.Stock) error {
 	if len(stocks) == 0 {
-		return nil // Nothing to upsert
+		return nil 
 	}
 
-	tx, err := c.db.BeginTx(context.Background(), nil) // Use c.db and context for transaction
+	tx, err := c.db.BeginTx(context.Background(), nil) 
 	if err != nil {
 		return fmt.Errorf("error al iniciar la transacción para upsert: %w", err)
 	}
-	defer tx.Rollback() // Rollback on error or if commit fails
+	defer tx.Rollback() 
 
-	stmt, err := tx.PrepareContext(context.Background(), ` // Use context for prepare
+	stmt, err := tx.PrepareContext(context.Background(), `
         INSERT INTO stocks (
             ticker, company, brokerage, action, rating_from, rating_to,
             target_from, target_to, current_price, pe_ratio, dividend_yield,
@@ -346,7 +346,7 @@ func (c *cockroachDB) UpsertStocks(stocks []models.Stock) error {
 	defer stmt.Close()
 
 	for _, s := range stocks {
-		_, err := stmt.ExecContext(context.Background(), // Use context for exec
+		_, err := stmt.ExecContext(context.Background(), 
 			s.Ticker, s.Company, s.Brokerage, s.Action, s.RatingFrom, s.RatingTo,
 			s.TargetFrom.NullFloat64,
 			s.TargetTo.NullFloat64,

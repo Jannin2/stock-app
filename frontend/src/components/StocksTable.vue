@@ -1,26 +1,38 @@
 <script setup lang="ts">
+// Importa las funciones reactivas de Vue 3: ref, computed, y onMounted.
 import { ref, computed, onMounted } from 'vue';
+// Importa el 'store' de acciones para manejar el estado global.
 import { useStockStore } from '../stores/stocks';
-import type { Stock } from '../types/stock'; // Make sure you have this import and the type is correct
+// Importa la interfaz de tipo 'Stock' para garantizar un tipado estricto.
+import type { Stock } from '../types/stock';
 
+// Inicializa el 'store' para poder acceder a su estado y sus acciones.
 const stockStore = useStockStore();
 
+// Llama al 'hook' del ciclo de vida 'onMounted'.
 onMounted(() => {
+    // Cuando el componente se monta, llama a la acción 'fetchStocks' para obtener los datos de las acciones.
     stockStore.fetchStocks();
 });
 
+// Crea una referencia reactiva para el texto de búsqueda.
 const searchQuery = ref('');
+// Define una propiedad 'computed' para filtrar las acciones.
 const filteredStocks = computed(() => {
+    // Si no hay stocks o la lista está vacía, devuelve un array vacío.
     if (!stockStore.stocks || stockStore.stocks.length === 0) {
         return [];
     }
+    // Convierte el valor de búsqueda a minúsculas para una comparación sin distinción de mayúsculas y minúsculas.
     const query = searchQuery.value.toLowerCase();
+    // Filtra la lista de stocks.
     return stockStore.stocks.filter(stock => {
-        // Use snake_case for consistency with backend if not transforming
+        // Obtiene las propiedades de stock y las convierte a minúsculas, manejando posibles valores nulos.
         const ticker = stock.ticker ? stock.ticker.toLowerCase() : '';
         const company = stock.company ? stock.company.toLowerCase() : '';
         const brokerage = stock.brokerage ? stock.brokerage.toLowerCase() : '';
 
+        // Retorna 'true' si el texto de búsqueda se encuentra en el ticker, la compañía o la correduría.
         return (
             ticker.includes(query) ||
             company.includes(query) ||
@@ -29,12 +41,15 @@ const filteredStocks = computed(() => {
     });
 });
 
+// Define una propiedad 'computed' para manejar la paginación.
 const paginatedStocks = computed(() => {
-    // For now, no actual pagination logic, just returns filtered stocks
+    // Por ahora, solo devuelve la lista de stocks filtrada.
     return filteredStocks.value;
 });
 
+// Define una propiedad 'computed' para el estado de carga del 'store'.
 const isLoading = computed(() => stockStore.loading);
+// Define una propiedad 'computed' para el mensaje de error del 'store'.
 const errorMessage = computed(() => stockStore.error);
 
 </script>
@@ -105,7 +120,7 @@ const errorMessage = computed(() => stockStore.error);
 </template>
 
 <style scoped>
-/* Tu estilo existente */
+/* Contenedor principal de la tabla. */
 .stocks-table-container {
     padding: 20px;
     background-color: #f9f9f9;
@@ -114,12 +129,14 @@ const errorMessage = computed(() => stockStore.error);
     margin-bottom: 20px;
 }
 
+/* Estilo para el título de la sección. */
 h2 {
     color: #333;
     margin-bottom: 15px;
     text-align: center;
 }
 
+/* Estilo para el campo de búsqueda. */
 .search-input {
     width: 100%;
     padding: 10px;
@@ -129,12 +146,14 @@ h2 {
     box-sizing: border-box;
 }
 
+/* Estilo principal de la tabla. */
 .stocks-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 
+/* Estilos de las celdas y encabezados de la tabla. */
 .stocks-table th,
 .stocks-table td {
     border: 1px solid #e0e0e0;
@@ -142,6 +161,7 @@ h2 {
     text-align: left;
 }
 
+/* Estilo para los encabezados de la tabla. */
 .stocks-table th {
     background-color: #007bff;
     color: white;
@@ -150,14 +170,17 @@ h2 {
     font-size: 0.9em;
 }
 
+/* Estilo para las filas pares de la tabla para mejorar la legibilidad. */
 .stocks-table tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
+/* Estilo de la fila al pasar el cursor sobre ella. */
 .stocks-table tr:hover {
     background-color: #e9e9e9;
 }
 
+/* Estilo para los mensajes de estado (carga, error, sin datos). */
 .loading-message, .error-message, .no-data-message {
     text-align: center;
     padding: 20px;
@@ -165,6 +188,7 @@ h2 {
     color: #555;
 }
 
+/* Estilo específico para el mensaje de error. */
 .error-message {
     color: #d9534f;
     font-weight: bold;

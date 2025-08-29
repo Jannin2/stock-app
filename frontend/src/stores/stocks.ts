@@ -1,15 +1,22 @@
 // frontend/src/stores/stocks.ts
+// Importa 'defineStore' de Pinia, la herramienta de gestión de estado global para Vue.
 import { defineStore } from 'pinia';
+// Importa la interfaz 'Stock' para el tipado estricto de los datos.
 import type { Stock } from '../types/stock';
 
+// Obtiene la URL de la API desde las variables de entorno de Vite.
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Define una interfaz para el estado del 'store', garantizando tipos de datos consistentes.
 interface StockState {
-    stocks: Stock[];
-    recommendedStocks: Stock[];
-    selectedStock: Stock | null;
-    loading: boolean;
-    error: string | null;
+    stocks: Stock[]; // Array para todas las acciones.
+    recommendedStocks: Stock[]; // Array para las acciones recomendadas.
+    selectedStock: Stock | null; // Objeto para la acción seleccionada, puede ser nulo.
+    loading: boolean; // Indicador de estado de carga.
+    error: string | null; // Mensaje de error, puede ser nulo.
 }
 
+// Define y exporta el 'store' de acciones.
 export const useStockStore = defineStore('stock', {
     state: (): StockState => ({
         stocks: [],
@@ -23,7 +30,8 @@ export const useStockStore = defineStore('stock', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await fetch('http://localhost:8081/api/v1/stocks');
+                // Usa la variable de entorno para la URL base.
+                const response = await fetch(`${API_URL}/api/v1/stocks`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -40,9 +48,10 @@ export const useStockStore = defineStore('stock', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await fetch('http://localhost:8081/api/v1/stocks/recommended');
+                // Usa la variable de entorno para la URL base.
+                const response = await fetch(`${API_URL}/api/v1/stocks/recommended`);
                 if (!response.ok) {
-                    const errorText = await response.text(); // Capture potential error message from server
+                    const errorText = await response.text();
                     throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
                 }
                 const data: Stock[] = await response.json();
@@ -57,9 +66,10 @@ export const useStockStore = defineStore('stock', {
         async fetchStockDetails(id: string) {
             this.loading = true;
             this.error = null;
-            this.selectedStock = null; // Clear previous selection
+            this.selectedStock = null;
             try {
-                const response = await fetch(`http://localhost:8081/api/v1/stocks/${id}`);
+                // Usa la variable de entorno para la URL base.
+                const response = await fetch(`${API_URL}/api/v1/stocks/${id}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -72,10 +82,7 @@ export const useStockStore = defineStore('stock', {
                 this.loading = false;
             }
         },
-
-
         formatCurrency(value: number | null | undefined): string {
-            // Check if value is a valid number, otherwise default to 0 for formatting
             const numValue = (value === null || typeof value === 'undefined' || isNaN(value)) ? 0 : value;
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -84,44 +91,33 @@ export const useStockStore = defineStore('stock', {
                 maximumFractionDigits: 2
             }).format(numValue);
         },
-
         formatPercentage(value: number | null | undefined): string {
-            // Check if value is a valid number, otherwise default to 0 for formatting
             const numValue = (value === null || typeof value === 'undefined' || isNaN(value)) ? 0 : value;
             return new Intl.NumberFormat('en-US', {
                 style: 'percent',
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-            }).format(numValue / 100); // Divide by 100 if your backend provides raw percentage (e.g., 5 for 5%)
-            // If your backend provides it as a decimal (e.g., 0.05 for 5%), remove the / 100
+            }).format(numValue);
         },
-
         formatMarketCap(value: number | null | undefined): string {
-            // Check if value is a valid number, otherwise default to 0 for formatting
             const numValue = (value === null || typeof value === 'undefined' || isNaN(value)) ? 0 : value;
-
             if (numValue === 0) {
-                return '$0.00M'; // Return 0.00M for zero value market cap
+                return '$0.00M';
             }
-
             const absValue = Math.abs(numValue);
-
-            // Assuming the market capitalization from the backend (e.g., 12477.23) is already in MILLIONS.
-            if (absValue >= 1000) { // If 1000 Million or more (i.e., 1 Billion)
-                return '$' + (numValue / 1000).toFixed(2) + 'B'; // Divide by 1000 to convert Millions to Billions
-            } else { // If less than 1000 Million, display in Millions
+            if (absValue >= 1000) {
+                return '$' + (numValue / 1000).toFixed(2) + 'B';
+            } else {
                 return '$' + numValue.toFixed(2) + 'M';
             }
         },
-
         formatDate(dateString: string | null | undefined): string {
-            // Explicitly check for null, undefined, empty string, or the default Go "zero" time
             if (!dateString || dateString === "0001-01-01T00:00:00Z" || dateString.startsWith("0000-")) {
-                return 'N/A'; // Return N/A for invalid or default dates
+                return 'N/A';
             }
             try {
                 const date = new Date(dateString);
-                if (isNaN(date.getTime())) { // Check for "Invalid Date" conversion
+                if (isNaN(date.getTime())) {
                     return 'N/A';
                 }
                 return new Intl.DateTimeFormat('en-US', {
@@ -131,7 +127,7 @@ export const useStockStore = defineStore('stock', {
                 }).format(date);
             } catch (e) {
                 console.error("Error formatting date:", e);
-                return 'N/A'; // Catch any other parsing errors
+                return 'N/A';
             }
         },
     },

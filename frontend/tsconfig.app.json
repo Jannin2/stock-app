@@ -8,9 +8,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    // Add this line to enable incremental compilation
     "incremental": true,
-    // Your existing tsBuildInfoFile path
-    "tsBuildInfoFile": "./node_modules/.tsbuildinfo/tsconfig.app.tsbuildinfo"
+    "tsBuildInfoFile": "./.tsbuildinfo"
   }
 }

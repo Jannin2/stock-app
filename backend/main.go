@@ -53,7 +53,7 @@ func main() {
 
 	router.Use(cors.Handler(cors.Options{
 		
-		AllowedOrigins:   []string{"http://localhost:5173", "https://stock-app-1-0lc4.onrender.com/"},
+		AllowedOrigins:   []string{"http://localhost:5173", "https://stock-app-1-0lc4.onrender.com"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -81,7 +81,7 @@ func main() {
 	// Iniciar el servidor HTTP
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8081"
+		port = "8080"
 	}
 	log.Printf("🚀 Servidor escuchando en http://localhost:%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
